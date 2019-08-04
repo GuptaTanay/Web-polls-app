@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from polls.models import Question
+from polls.models import Question, Choice
 from django.template import loader
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -28,4 +28,18 @@ def results(request, question_id):
 
 
 def vote(request, question_id):
+    question = get_object_or_404(Question, pk = question_id)
+    try:
+      selected_choice = question.choice_set.get(pl = request.POST['choice'])
+    except (KeyError, Choice.DoesNotExist):
+        return render(request, 'polls/detail.html',
+                      {
+                        'question': question,
+                        'error_message': "Please select a choice",
+                      })
+    else:
+        selected_choice.votes+=1
+        selected_choice.save()
+
+
     return HttpResponse("You are voting for question %s." % question_id)
